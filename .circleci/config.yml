@@ -4,8 +4,10 @@ executors:
     docker:
       - image: cimg/rust:1.63.0
 jobs:
-  prepare:
+  checkout_lint_test:
     executor: rust
+    environment:
+      RUSTFLAGS: '-D warnings'
     steps:
       - checkout
       - run:
@@ -16,29 +18,25 @@ jobs:
           command: cargo generate-lockfile
       - restore_cache:
           keys:
-            - v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
-  test:
-    executor: rust
-    steps:
+            - v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }
+      - run:
+          name: Check formatting
+          command: test -z '$(cargo fmt --all -- --check)'
+      - run:
+          name: Lint codebase
+          command: cargo clippy
       - run:
           name: Run all tests
           command: cargo test --release
-  lint:
-    executor: rust
-    steps:
-      - run:
-          name: Lint code
-          command: cargo clippy --release
-
+      - save_cache:
+          paths:
+            - /usr/local/cargo/registry
+          key: v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
 workflows:
-  test_branch_develop:
-    jobs:
-      - prepare
-      - test:
-          requires:
-            - prepare
-      - lint:
-          requires:
-            - prepare
-
-
+  all:
+    branch_develop:
+      jobs:
+        - checkout_lint_test
+      filters:
+        branches:
+          only: develop
