@@ -1,53 +1,53 @@
 version: 2.1
 executors:
-	rust:
-		docker:
-			- image: cimg/rust:1.63.0
-		working_directory: ~/workspace
+  rust:
+    docker:
+      - image: cimg/rust:1.63.0
+    working_directory: ~/workspace
 jobs:
-	checkout-build:
-		executor: rust
-		environment:
-			RUSTFLAGS: '-D warnings'
-		steps:
-			- checkout
-			- run:
-					name: Get version information
-					command: rustc --version; cargo --version; rustup --version
-			- run:
-					name: Generate lockfile
-					command: cargo generate-lockfile
-			- restore_cache:
-					keys:
-						- v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
-			- run:
-					name: Build all targets
-					command: cargo build --release
-			- save_cache:
-					paths:
-						- /usr/local/cargo/registry
-						- target/release/.fingerprint
-						- target/release/build
-						- target/release/deps
-					key: v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
-			- persist_to_workspace:
-					root: ~/workspace
-					paths:
-						- Cargo.toml
-						- src
-						- target
-	test:
-		executor: rust
-		steps:
-			- attach_workspace:
-					at: ~/workspace
-			- run:
-					name: Run all tests
-					command: cargo test --release
+  checkout-build:
+    executor: rust
+    environment:
+      RUSTFLAGS: '-D warnings'
+    steps:
+      - checkout
+      - run:
+          name: Get version information
+          command: rustc --version; cargo --version; rustup --version
+      - run:
+          name: Generate lockfile
+          command: cargo generate-lockfile
+      - restore_cache:
+          keys:
+            - v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
+      - run:
+          name: Build all targets
+          command: cargo build --release
+      - save_cache:
+          paths:
+            - /usr/local/cargo/registry
+            - target/release/.fingerprint
+            - target/release/build
+            - target/release/deps
+          key: v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
+      - persist_to_workspace:
+          root: ~/workspace
+          paths:
+            - Cargo.toml
+            - src
+            - target
+  test:
+    executor: rust
+    steps:
+      - attach_workspace:
+          at: ~/workspace
+      - run:
+          name: Run all tests
+          command: cargo test --release
 workflows:
-	build-test:
-		jobs:
-			- checkout-build
-			- test:
-					requires:
-						- checkout-build
+  build-test:
+    jobs:
+      - checkout-build
+      - test:
+          requires:
+            - checkout-build
