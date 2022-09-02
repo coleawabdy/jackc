@@ -18,7 +18,7 @@ jobs:
           command: cargo generate-lockfile
       - restore_cache:
           keys:
-            - v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }
+            - v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
       - run:
           name: Check formatting
           command: test -z '$(cargo fmt --all -- --check)'
