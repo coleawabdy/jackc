@@ -3,12 +3,9 @@ executors:
   rust:
     docker:
       - image: cimg/rust:1.63.0
-    working_directory: ~/workspace
 jobs:
-  checkout-build:
+  prepare:
     executor: rust
-    environment:
-      RUSTFLAGS: '-D warnings'
     steps:
       - checkout
       - run:
@@ -20,34 +17,28 @@ jobs:
       - restore_cache:
           keys:
             - v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
-      - run:
-          name: Build all targets
-          command: cargo build --release
-      - save_cache:
-          paths:
-            - /usr/local/cargo/registry
-            - target/release/.fingerprint
-            - target/release/build
-            - target/release/deps
-          key: v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
-      - persist_to_workspace:
-          root: ~/workspace
-          paths:
-            - Cargo.toml
-            - src
-            - target
   test:
     executor: rust
     steps:
-      - attach_workspace:
-          at: ~/workspace
       - run:
           name: Run all tests
           command: cargo test --release
+  lint:
+    executor: rust
+    steps:
+      - run:
+          name: Lint code
+          command: cargo clippy --release
+
 workflows:
-  build-test:
+  test_branch_develop:
     jobs:
-      - checkout-build
+      - prepare
       - test:
           requires:
-            - checkout-build
+            - prepare
+      - lint:
+          requires:
+            - prepare
+
+
