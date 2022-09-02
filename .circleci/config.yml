@@ -33,10 +33,9 @@ jobs:
             - /usr/local/cargo/registry
           key: v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
 workflows:
-  all:
-    branch_develop:
-      jobs:
-        - checkout_lint_test
-      filters:
-        branches:
-          only: develop
+  branch_develop:
+    jobs:
+      - checkout_lint_test
+    filters:
+      branches:
+        only: develop
