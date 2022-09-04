@@ -20,9 +20,6 @@ jobs:
           keys:
             - v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
       - run:
-          name: Check formatting
-          command: test -z '$(cargo fmt --all -- --check)'
-      - run:
           name: Lint codebase
           command: cargo clippy
       - run:
