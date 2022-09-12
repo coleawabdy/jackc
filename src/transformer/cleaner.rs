@@ -19,7 +19,7 @@ pub fn clean(source: &str) -> String {
             continue;
         }
 
-		let was_comment = matches!(context, Context::Comment(_));
+        let was_comment = matches!(context, Context::Comment(_));
 
         context = match context {
             Context::None => match c {
