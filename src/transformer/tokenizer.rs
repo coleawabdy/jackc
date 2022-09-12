@@ -1,11 +1,4 @@
-use std::str::FromStr;
-
-use regex::Regex;
-
-lazy_static! {
-    static ref RE_COMMENT_MULTILINE: Regex = Regex::new("/*.|$*/").unwrap();
-}
-
+#[allow(dead_code)]
 pub enum Keyword {
     Class,
     Method,
@@ -30,11 +23,13 @@ pub enum Keyword {
     This,
 }
 
+#[allow(dead_code)]
 pub enum Direction {
     Left,
     Right,
 }
 
+#[allow(dead_code)]
 pub enum Operator {
     Add,
     Subtract,
@@ -47,6 +42,7 @@ pub enum Operator {
     Greater,
 }
 
+#[allow(dead_code)]
 pub enum Symbol {
     Parenthese(Direction),
     Bracket(Direction),
@@ -58,6 +54,7 @@ pub enum Symbol {
     Operator(Operator),
 }
 
+#[allow(dead_code)]
 pub enum Token {
     Keyword(Keyword),
     Identifier,
@@ -66,7 +63,8 @@ pub enum Token {
     Integer(u16),
 }
 
-pub fn tokenize(source: &str) -> Vec<Token> {
+#[allow(dead_code)]
+pub fn tokenize(_source: &str) -> Vec<Token> {
     todo!()
 }
 

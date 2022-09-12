@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 pub fn clean(source: &str) -> String {
     #[derive(PartialEq, Copy, Clone)]
     enum Context {
@@ -18,10 +19,7 @@ pub fn clean(source: &str) -> String {
             continue;
         }
 
-        let was_comment = match context {
-            Context::Comment(_) => true,
-            _ => false,
-        };
+		let was_comment = matches!(context, Context::Comment(_));
 
         context = match context {
             Context::None => match c {
