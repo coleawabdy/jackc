@@ -7,3 +7,5 @@ edition = "2021"
 name = "jackc"
 
 [dependencies]
+regex = "1"
+lazy_static = "1.4.0"
