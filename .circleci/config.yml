@@ -4,7 +4,7 @@ executors:
     docker:
       - image: cimg/rust:1.63.0
 jobs:
-  lint_and_test:
+  format_lint_test:
     executor: rust
     environment:
       RUSTFLAGS: '-D warnings'
@@ -20,6 +20,9 @@ jobs:
           keys:
             - v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
       - run:
+          name: Check formatting
+          command: cargo fmt -- --check
+      - run:
           name: Lint codebase
           command: cargo clippy
       - run:
@@ -32,4 +35,4 @@ jobs:
 workflows:
   all:
     jobs:
-      - checkout_lint_test
+      - format_lint_test
