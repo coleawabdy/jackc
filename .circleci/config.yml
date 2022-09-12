@@ -4,7 +4,7 @@ executors:
     docker:
       - image: cimg/rust:1.63.0
 jobs:
-  checkout_lint_test:
+  lint_and_test:
     executor: rust
     environment:
       RUSTFLAGS: '-D warnings'

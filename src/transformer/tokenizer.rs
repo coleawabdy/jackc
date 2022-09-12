@@ -67,9 +67,8 @@ pub enum Token {
 }
 
 pub fn tokenize(source: &str) -> Vec<Token> {
-	todo!()
+    todo!()
 }
 
 #[cfg(test)]
-mod tests {
-}
+mod tests {}

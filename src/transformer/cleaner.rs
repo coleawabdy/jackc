@@ -70,9 +70,9 @@ pub fn clean(source: &str) -> String {
 
         if c.is_whitespace() && !was_last_whitespace && !was_comment {
             ret.push(match c {
-				'\n' => c,
-				_ => ' '
-			});
+                '\n' => c,
+                _ => ' ',
+            });
             was_last_whitespace = true;
         } else if !was_comment {
             ret.push(c);
@@ -90,8 +90,14 @@ mod tests {
     #[test]
     fn remove_single_line_comments() {
         assert_eq!(clean("// SINGLE LINE COMMENT"), "");
-		assert_eq!(clean("NON COMMENT\n// SINGLE LINE COMMENT\n"), "NON COMMENT\n");
-		assert_eq!(clean("NOT A COMMENT"), "NOT A COMMENT");
-		assert_eq!(clean("NOT A COMMENT\n// SINGLE LINE COMMENT\nADDITIONAL NOT A COMMENT"), "NOT A COMMENT\nADDITIONAL NOT A COMMENT");
+        assert_eq!(
+            clean("NON COMMENT\n// SINGLE LINE COMMENT\n"),
+            "NON COMMENT\n"
+        );
+        assert_eq!(clean("NOT A COMMENT"), "NOT A COMMENT");
+        assert_eq!(
+            clean("NOT A COMMENT\n// SINGLE LINE COMMENT\nADDITIONAL NOT A COMMENT"),
+            "NOT A COMMENT\nADDITIONAL NOT A COMMENT"
+        );
     }
 }
