@@ -1,3 +1,5 @@
+use regex::Regex;
+
 #[allow(dead_code)]
 pub enum Keyword {
     Class,
@@ -63,9 +65,15 @@ pub enum Token {
     Integer(u16),
 }
 
+lazy_static! {
+    static ref REGEX_IDENTIFIER: Regex = Regex::new("").unwrap();
+}
+
 #[allow(dead_code)]
-pub fn tokenize(_source: &str) -> Vec<Token> {
-    todo!()
+pub fn tokenize(source: &str) -> Vec<Token> {
+    let mut tokens = Vec::<Token>::new();
+
+    tokens
 }
 
 #[cfg(test)]

@@ -1,129 +1,145 @@
+use regex::Regex;
+
+lazy_static! {
+    static ref RE_ANNOTATE: Regex = Regex::new(
+        r#"(?mx)
+		(?P<cs>//.*$)
+		|
+		(?s)(?P<cm>/\*.*\*/)
+		|
+		(?-s)(?P<str>".*?")
+		|
+		(?P<ws>\s+)
+		|
+		(?P<none>\S+)"#
+    )
+    .expect("Failed to build regex");
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum Annotation {
+    Comment,
+    String,
+    Whitespace,
+}
+
+fn annotate(source: &str) -> Vec<(&str, Option<Annotation>)> {
+    let mut annotations = Vec::<(&str, Option<Annotation>)>::new();
+
+    // Map capture groups to specific annotation
+    for caps in RE_ANNOTATE.captures_iter(source) {
+        if let Some(m) = caps.name("cs") {
+            annotations.push((m.as_str(), Some(Annotation::Comment)));
+        } else if let Some(m) = caps.name("cm") {
+            annotations.push((m.as_str(), Some(Annotation::Comment)));
+        } else if let Some(m) = caps.name("str") {
+            annotations.push((m.as_str(), Some(Annotation::String)));
+        } else if let Some(m) = caps.name("ws") {
+            annotations.push((m.as_str(), Some(Annotation::Whitespace)));
+        } else if let Some(m) = caps.name("none") {
+            annotations.push((m.as_str(), None));
+        }
+    }
+
+    annotations
+}
+
 #[allow(dead_code)]
 pub fn clean(source: &str) -> String {
-    #[derive(PartialEq, Copy, Clone)]
-    enum Context {
-        None,
-        Comment(bool),
-        String,
-        Whitespace(bool),
-    }
-
-    let mut ret = String::new();
-    ret.reserve(source.len());
-
-    let mut context = Context::None;
-    let mut skip_next = false;
-    for (index, c) in source.chars().enumerate() {
-        if skip_next {
-            skip_next = false;
-            continue;
-        }
-
-        let next_context = match context {
-            Context::None | Context::Whitespace(_) => match c {
-                '/' => {
-                    let next_char = source.chars().nth(index + 1);
-
-                    match next_char {
-                        Some('*') | Some('/') => {
-                            skip_next = true;
-                            Context::Comment(next_char == Some('*'))
-                        }
-                        None | Some(_) => context,
-                    }
-                }
-                '"' => Context::String,
-                c => {
-                    if c.is_whitespace() {
-                        let existing_newline = matches!(context, Context::Whitespace(true));
-                        Context::Whitespace(c == '\n' || existing_newline)
-                    } else {
-                        Context::None
-                    }
-                }
-            },
-            Context::Comment(true) => {
-                if c == '*' && source.chars().nth(index + 1).unwrap_or_default() == '/' {
-                    skip_next = true;
-                    Context::None
-                } else {
-                    context
-                }
-            }
-            Context::Comment(false) => {
-                if c == '\n' {
-                    Context::None
-                } else {
-                    context
-                }
-            }
-            Context::String => {
-                if c == '"' {
-                    Context::None
-                } else {
-                    context
-                }
-            }
-        };
-
-        match (context, next_context) {
-            (Context::Whitespace(mut newline), next) => {
-                newline = match next {
-                    Context::Whitespace(true) => true,
-                    _ => newline,
-                };
-
-                if !matches!(next, Context::Whitespace(_))
-                    || source.chars().nth(index + 1).is_none()
-                {
-                    ret.push(if newline { '\n' } else { ' ' });
-                }
-                match next {
-                    Context::None | Context::String => ret.push(c),
-                    _ => {}
-                }
-            }
-            (Context::None, Context::None) | (Context::String, _) | (_, Context::String) => {
-                ret.push(c)
-            }
-            _ => {}
-        }
-
-        context = next_context;
-    }
-
-    ret
+    todo!()
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::transformer::cleaner::clean;
+    use super::{annotate, Annotation};
 
     #[test]
+    fn annotate_string() {
+        assert_eq!(
+            annotate("\"TEST STRING\""),
+            vec![("\"TEST STRING\"", Some(Annotation::String))]
+        );
+        assert_eq!(
+            annotate("\"STR1\"\"STR2\""),
+            vec![
+                ("\"STR1\"", Some(Annotation::String)),
+                ("\"STR2\"", Some(Annotation::String))
+            ]
+        );
+        assert_eq!(annotate("\"UNTERMINATED"), vec![("\"UNTERMINATED", None)]);
+        assert_eq!(
+            annotate("\"STRING\nNEWLINE\""),
+            vec![
+                ("\"STRING", None),
+                ("\n", Some(Annotation::Whitespace)),
+                ("NEWLINE\"", None)
+            ]
+        );
+    }
+
+    #[test]
+    fn annotate_comment() {
+        assert_eq!(
+            annotate("// SINGLE LINE COMMENT\n"),
+            vec![
+                ("// SINGLE LINE COMMENT", Some(Annotation::Comment)),
+                ("\n", Some(Annotation::Whitespace))
+            ]
+        );
+        assert_eq!(
+            annotate("/* MULTI\n LINE \n COMMENT */"),
+            vec![("/* MULTI\n LINE \n COMMENT */", Some(Annotation::Comment))]
+        )
+    }
+
+    #[test]
+    fn annotate_whitespace() {
+        assert_eq!(
+            annotate(" \n\n"),
+            vec![(" \n\n", Some(Annotation::Whitespace))]
+        );
+        assert_eq!(
+            annotate("class Main {\n"),
+            vec![
+                ("class", None),
+                (" ", Some(Annotation::Whitespace)),
+                ("Main", None),
+                (" ", Some(Annotation::Whitespace)),
+                ("{", None),
+                ("\n", Some(Annotation::Whitespace))
+            ]
+        )
+    }
+
+    /*#[test]
     fn remove_single_line_comments() {
-        //assert_eq!(clean("// SINGLE LINE COMMENT"), "");
+        assert_eq!(clean("// SINGLE LINE COMMENT"), "");
         assert_eq!(
             clean("NON COMMENT\n// SINGLE LINE COMMENT\n"),
-            "NON COMMENT\n"
+            "NON COMMENT "
         );
         assert_eq!(clean("NOT A COMMENT"), "NOT A COMMENT");
         assert_eq!(
             clean("NOT A COMMENT\n// SINGLE LINE COMMENT\nADDITIONAL NOT A COMMENT"),
-            "NOT A COMMENT\nADDITIONAL NOT A COMMENT"
+            "NOT A COMMENT ADDITIONAL NOT A COMMENT"
         );
     }
 
     #[test]
     fn remove_multi_line_comments() {
-        assert_eq!(clean("/* MULTI LINE COMMENT */"), "");
-        assert_eq!(clean("/* MULTI\nLINE\nCOMMENT\n*/"), "");
+        assert_eq!(clean("/* MULTI LINE COMMENT */
+    "), "");
+        assert_eq!(clean(" /* MULTI\nLINE\nCOMMENT\n*/
+    "), "");
         assert_eq!(
-            clean("NON COMMENT\n/* MULTI LINE COMMENT\n*/"),
-            "NON COMMENT\n"
+            clean("NON COMMENT\n /* MULTI LINE COMMENT\n*/
+    "),
+            "NON COMMENT "
         );
         assert_eq!(
-            clean("BEFORE NON COMMENT\n/* MULTI\n LINE\n COMMENT\n*/\nAFTER NON COMMENT"),
-            "BEFORE NON COMMENT\n\nAFTER NON COMMENT"
+            clean("BEFORE NON COMMENT\n /* MULTI\n LINE\n COMMENT\n*/
+    \nAFTER NON COMMENT"),
+            "BEFORE NON COMMENT AFTER NON COMMENT"
         );
     }
 
@@ -131,8 +147,8 @@ mod tests {
     fn compress_whitespace() {
         assert_eq!(clean("  "), " ");
         assert_eq!(clean("\t \t"), " ");
-        assert_eq!(clean("\t\n\t\n"), "\n");
-        assert_eq!(clean("\t\tclass Main {};\t\t\n"), " class Main {};\n");
+        assert_eq!(clean("\t\n\t\n"), " ");
+        assert_eq!(clean("\t\tclass Main {};\t\t\n"), " class Main {}; ");
     }
 
     #[test]
@@ -142,5 +158,5 @@ mod tests {
             clean("\"// SINGLE LINE COMMENT\""),
             "\"// SINGLE LINE COMMENT\""
         )
-    }
+    }*/
 }
