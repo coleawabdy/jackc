@@ -70,10 +70,8 @@ lazy_static! {
 }
 
 #[allow(dead_code)]
-pub fn tokenize(source: &str) -> Vec<Token> {
-    let mut tokens = Vec::<Token>::new();
-
-    tokens
+pub fn tokenize(_source: &str) -> Vec<Token> {
+    todo!()
 }
 
 #[cfg(test)]

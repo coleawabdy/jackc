@@ -23,6 +23,7 @@ enum Annotation {
     Whitespace,
 }
 
+#[allow(dead_code)]
 fn annotate(source: &str) -> Vec<(&str, Option<Annotation>)> {
     let mut annotations = Vec::<(&str, Option<Annotation>)>::new();
 
@@ -45,7 +46,7 @@ fn annotate(source: &str) -> Vec<(&str, Option<Annotation>)> {
 }
 
 #[allow(dead_code)]
-pub fn clean(source: &str) -> String {
+pub fn clean(_source: &str) -> String {
     todo!()
 }
 
