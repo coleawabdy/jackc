@@ -15,7 +15,7 @@ jobs:
           command: rustc --version; cargo --version; rustup --version
       - restore_cache:
           keys:
-            - v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
+            - v2-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
       - run:
           name: Check formatting
           command: cargo fmt -- --check
@@ -27,8 +27,8 @@ jobs:
           command: cargo test --release
       - save_cache:
           paths:
-            - /usr/local/cargo/registry
-          key: v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
+            - ~/.cargo
+          key: v2-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
 workflows:
   all:
     jobs:
