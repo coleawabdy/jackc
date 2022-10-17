@@ -14,8 +14,6 @@ lazy_static! {
 		(?P<none>\S+)"#
     )
     .expect("Failed to build annotation regex");
-    static ref RE_WHITESPACE_COMPRESS: Regex =
-        Regex::new(r"(?m)(?P<ws>\s{2,})").expect("Failed to build whitespace compression regex");
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
